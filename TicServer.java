@@ -7,16 +7,26 @@ public class TicServer {
     private static int MAX_CLIENTS = 2;
     private static int currentPlayer = 1;
     private static Semaphore semaphore = new Semaphore(1); // Semaphore for currentPlayer
+    private static int[][] board;
 
-    public static void main(String[] args) {
+    public TicServer()
+    {
+        initBoard();
+        initSocket();
+    }
 
-        int[][] board = new int[3][3];
+    public static void initBoard()
+    {
+        board = new int[3][3];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 board[i][j] = -1;
             }
         }
+    }
 
+    public static void initSocket()
+    {
         ServerSocket serverSocket = null;
         int port = 1761;
 
@@ -43,6 +53,11 @@ public class TicServer {
             }
         }
     }
+
+    public static void main(String[] args) {
+        new TicServer();
+    }
+    
 
     public static int getCurrentPlayer() {
         return currentPlayer;
