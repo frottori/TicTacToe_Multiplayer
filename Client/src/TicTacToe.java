@@ -28,8 +28,8 @@ public class TicTacToe implements ActionListener {
 
     private int currentPlayer;
 
-    public TicTacToe(){
-
+    private void initConnection()
+    {
         try{
             sock = new Socket(serverAddress,port);
             BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -39,9 +39,10 @@ public class TicTacToe implements ActionListener {
         catch(IOException e){
             e.printStackTrace();
         }
-        winner = new JLabel("");
-        winner.setFont(new Font("Fish Grill", Font.PLAIN, 42));
-        winner.setVerticalAlignment(SwingConstants.CENTER);
+    }
+
+    private void checkTurn()
+    {
         if (currentPlayer == 0) {
             winner.setText("O Plays...");
             winner.setForeground(new Color(0x3ec5f3));
@@ -49,6 +50,18 @@ public class TicTacToe implements ActionListener {
             winner.setText("X Plays...");
             winner.setForeground(new Color(0xff615f));
         }
+    }
+
+    public TicTacToe(){
+
+        initConnection();
+
+        winner = new JLabel("");
+        winner.setFont(new Font("Fish Grill", Font.PLAIN, 42));
+        winner.setVerticalAlignment(SwingConstants.CENTER);
+        
+        checkTurn();
+
         assigned = new int[3][3];
 
         frame = new JFrame();
@@ -58,7 +71,8 @@ public class TicTacToe implements ActionListener {
         board = new JButton[3][3];
         xIcon = new ImageIcon(getClass().getResource("icons/x.png"));
         oIcon = new ImageIcon(getClass().getResource("icons/o.png"));
-        for(int i=0;i<3;i++)
+
+        for(int i=0;i<3;i++){
             for(int j=0;j<3;j++ ) {
                 assigned[i][j] = -1;
                 board[i][j] = new JButton();
@@ -68,6 +82,7 @@ public class TicTacToe implements ActionListener {
                 board[i][j].setFocusable(false);
                 frame.add(board[i][j]);
             }
+        }
         
         frame.add(winner);
         
@@ -80,21 +95,22 @@ public class TicTacToe implements ActionListener {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         frame.setResizable(false);
+
         timer = new Timer(500, e -> updateBoardIcons()); // Set up a Timer to fire every 1000 milliseconds (1 second)
         timer.start();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        for (int i=0;i<3;i++){
-            for(int j=0;j<3;j++ ){
-                if (e.getSource()==board[i][j]){
-                    if(player==0 && assigned[i][j]==-1) {
+        for (int i = 0; i < 3; i++){
+            for(int j = 0; j < 3; j++){
+                if (e.getSource() == board[i][j]){
+                    if(player == 0 && assigned[i][j] == -1) {
                         board[i][j].setIcon(oIcon);
-                        assigned[i][j]= 0;
-                        setAssigned(0,i,j); //set assigned for o 
+                        assigned[i][j] = 0;
+                        setAssigned(0, i, j); //set assigned for o 
                     }
-                    else if(player==1 && assigned[i][j]==-1) {
+                    else if(player == 1 && assigned[i][j] == -1) {
                         board[i][j].setIcon(xIcon);
                         assigned[i][j]=1;
                         setAssigned(1,i,j);
