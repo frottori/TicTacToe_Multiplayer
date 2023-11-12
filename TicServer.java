@@ -94,12 +94,14 @@ class ClientHandlerThread extends Thread {
             int code = 1;
 
             while (code == 1 || code == 2) {
+                
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
                 String codeString = in.readLine();
                 if (codeString != null && !codeString.isEmpty()) {
-                        code = Integer.parseInt(codeString);
-                    }
+                    code = Integer.parseInt(codeString);
+                }
+
                 if (code == 0) // end server
                     break;
                 else if (code == 1) { // setAssigned
@@ -111,7 +113,7 @@ class ClientHandlerThread extends Thread {
                     semaphore.acquire(); // Acquire the semaphore before updating currentPlayer
 
                     int currentPlayer = Integer.parseInt(in.readLine());
-                    System.out.println("Player that played last: " + currentPlayer);
+                    // System.out.println("Player that played last: " + currentPlayer);
 
                     if (currentPlayer == 0) {
                         TicServer.setCurrentPlayer(1);
@@ -123,6 +125,7 @@ class ClientHandlerThread extends Thread {
 
                     board[k][l] = val;
                 } else if (code == 2) { // update
+                    
                     ObjectOutputStream ooStream = new ObjectOutputStream(clientSocket.getOutputStream());
                     ooStream.writeObject(this.board);
                     ooStream.flush();
@@ -131,7 +134,7 @@ class ClientHandlerThread extends Thread {
                     semaphore.acquire(); // Acquire the semaphore before reading currentPlayer
 
                     int currentPlayer = TicServer.getCurrentPlayer();
-                    System.out.println("Player to play: " + currentPlayer);
+                    // System.out.println("Player to play: " + currentPlayer);
 
                     semaphore.release(); // Release the semaphore after reading currentPlayer
 
@@ -143,7 +146,10 @@ class ClientHandlerThread extends Thread {
             e.printStackTrace();
         } finally {
             try {
-                clientSocket.close();
+                if(clientSocket != null && !clientSocket.isClosed()){
+                    System.out.println("Client " + clientNumber + " disconnected");
+                    clientSocket.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
