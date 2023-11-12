@@ -177,9 +177,11 @@ public class TicTacToe implements ActionListener {
         try{
             if(checkWinner())
                 return;
-            if(sock== null || sock.isClosed())
+            if(sock == null || sock.isClosed())
                 return;
-            flag = true;
+            
+            
+
             PrintWriter pr = new PrintWriter (sock.getOutputStream());
             pr.println(Integer.toString(2));
             pr.flush();
@@ -231,6 +233,9 @@ public class TicTacToe implements ActionListener {
     }
 
     private boolean checkWinner(){
+
+        flag = true;
+        
         // horizontal check
         for (int i=0;i<3;i++){
             if(equals3(assigned[i][0],assigned[i][1],assigned[i][2])){
