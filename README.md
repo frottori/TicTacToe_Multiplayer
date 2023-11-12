@@ -1,6 +1,6 @@
 # TicTacToe Multiplayer 
 
-A simple TicTacToe game between two players using TCP sockets.
+A simple TicTacToe game between two players that determines who wins or if it is a tie using TCP sockets.
 
 ## Demo Video
 
