@@ -135,7 +135,7 @@ public class TicTacToe implements ActionListener {
     
 
     public static boolean equals3(int a,int b,int c){
-        if(a==b && b==c & a!=-1)
+        if(a == b && b == c & a != -1)
             return true;
         else 
             return false;
