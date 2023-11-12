@@ -1,8 +1,8 @@
-## Tic Tac Toe Multiplayer 
+# TicTacToe Multiplayer 
 
-A simple Tic Tac Toe game between two players using TCP sockets.
+A simple TicTacToe game between two players using TCP sockets.
 
-## Demo
+## Demo Video
 
 https://github.com/frottori/TicTacToe_Multiplayer/assets/119513126/325818bd-2a57-4132-9001-9b8673599145
 
