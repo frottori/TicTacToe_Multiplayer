@@ -6,7 +6,7 @@ public class TicServer {
 
     private static int MAX_CLIENTS = 2;
     private static int currentPlayer = 1;
-    private static Semaphore semaphore = new Semaphore(1); // Semaphore for controlling access to currentPlayer
+    private static Semaphore semaphore = new Semaphore(1); // Semaphore for currentPlayer
 
     public static void main(String[] args) {
 
