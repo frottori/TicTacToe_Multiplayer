@@ -93,7 +93,7 @@ class ClientHandlerThread extends Thread {
 
             int code = 1;
 
-            while (code == 1 || code == 2) {
+            while (code == 1 || code == 2 || code == 3) {
                 
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
@@ -140,6 +140,8 @@ class ClientHandlerThread extends Thread {
 
                     out.println(currentPlayer);
                     out.flush();
+                } else if (code == 3) { // reset
+                    TicServer.initBoard();
                 }
             }
         } catch (IOException | InterruptedException e) {

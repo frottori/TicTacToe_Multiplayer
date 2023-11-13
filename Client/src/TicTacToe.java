@@ -1,6 +1,5 @@
 import java.awt.*;
 
-import javax.print.DocFlavor;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
@@ -97,6 +96,7 @@ public class TicTacToe implements ActionListener {
         restartButton.setFont(new Font("Fish Grill", Font.PLAIN, 24));
         restartButton.setPreferredSize(new Dimension(150, 50));
         restartButton.setFocusable(false);
+        restartButton.addActionListener(e -> restartGame());
 
         quitButton = new JButton("Quit");
         quitButton.setBackground(Color.WHITE);
@@ -156,6 +156,31 @@ public class TicTacToe implements ActionListener {
 
         timer = new Timer(500, e -> updateBoardIcons()); // Set up a Timer to fire every 1000 milliseconds (1 second)
         timer.start();
+    }
+
+    private void restartGame()
+    {
+        try{
+            PrintWriter pr = new PrintWriter (sock.getOutputStream());
+            pr.println(Integer.toString(3));
+            pr.flush();
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
+        for(int i = 0; i < 3; i++){
+            for(int j = 0; j < 3; j++) {
+                board[i][j].setIcon(null);
+                board[i][j].setBackground(Color.WHITE);
+                assigned[i][j] = -1;
+            }
+        }
+
+        whoWon = -1;
+        winner.setText("");
+        currentPlayer = player;
+        checkTurn();
     }
 
     @Override
@@ -330,12 +355,14 @@ public class TicTacToe implements ActionListener {
             winner.setText("X Won!");
             winner.setForeground(new Color(0xff615f));
             buttonsDisabled();
+            timer.stop();
             // closeSocket();
             return true;
         } else if (whoWon == 0) { // O WON
             winner.setText("O Wins!");
             winner.setForeground(new Color(0x3ec5f3));
             buttonsDisabled();
+            timer.stop();
             // closeSocket();
             return true;
         }
@@ -353,6 +380,7 @@ public class TicTacToe implements ActionListener {
                 winner.setText("Tie!");
                 winner.setForeground(Color.BLACK);
                 buttonsDisabled();
+                timer.stop();
                 // closeSocket();
                 return true;
         }
