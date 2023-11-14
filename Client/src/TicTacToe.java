@@ -1,4 +1,5 @@
 import java.awt.*;
+
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
@@ -17,7 +18,10 @@ public class TicTacToe implements ActionListener {
     private String serverAddress = "localhost";
     private Socket sock;
     private JButton[][] board;
-    private JButton quit;
+
+    private JButton restartButton;
+    private JButton quitButton;
+    
     private int[][] assigned;
     private JFrame frame;
     private ImageIcon xIcon,oIcon;
@@ -46,13 +50,11 @@ public class TicTacToe implements ActionListener {
     private void showPlayer()
     {
         if(player == 0)
-        {
             playerName.setText("(You are playing as O)");
-        }
         else
-        {
             playerName.setText("(You are playing as X)");
-        }
+        
+        playerName.setHorizontalAlignment(SwingConstants.CENTER);
     }
 
     private void checkTurn()
@@ -64,6 +66,8 @@ public class TicTacToe implements ActionListener {
             winner.setText("X Plays...");
             winner.setForeground(new Color(0xff615f));
         }
+
+        winner.setHorizontalAlignment(SwingConstants.CENTER);
     }
 
     public TicTacToe(){
@@ -80,14 +84,34 @@ public class TicTacToe implements ActionListener {
         winner.setFont(new Font("Fish Grill", Font.PLAIN, 42));
         winner.setVerticalAlignment(SwingConstants.CENTER);
 
-        quit = new JButton("Quit");
-        quit.setBackground(Color.WHITE);
-        quit.setFont(new Font("Fish Grill", Font.PLAIN, 24));
-        quit.setPreferredSize(new Dimension(200, 50));
-        quit.setVerticalAlignment(SwingConstants.CENTER);
-        quit.setFocusable(false);
+        JPanel panel = new JPanel(new GridLayout(2, 1));
+        panel.setPreferredSize(new Dimension(300, 100));
+        panel.setOpaque(false);
+        // panel.setBackground(Color.LIGHT_GRAY);
+        panel.add(playerName);
+        panel.add(winner);
 
-        quit.addActionListener(e -> quitGame());
+        restartButton = new JButton("Restart");
+        restartButton.setBackground(Color.WHITE);
+        restartButton.setFont(new Font("Fish Grill", Font.PLAIN, 24));
+        restartButton.setPreferredSize(new Dimension(150, 50));
+        restartButton.setFocusable(false);
+        restartButton.addActionListener(e -> restartGame());
+
+        quitButton = new JButton("Quit");
+        quitButton.setBackground(Color.WHITE);
+        quitButton.setFont(new Font("Fish Grill", Font.PLAIN, 24));
+        quitButton.setPreferredSize(new Dimension(150, 50));
+        quitButton.setFocusable(false);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 25));
+        buttonPanel.setPreferredSize(new Dimension(350, 100));
+        buttonPanel.setOpaque(false);
+
+        buttonPanel.add(restartButton);
+        buttonPanel.add(quitButton);
+
+        quitButton.addActionListener(e -> quitButtonGame());
         
         checkTurn();
 
@@ -95,7 +119,7 @@ public class TicTacToe implements ActionListener {
 
         frame = new JFrame();
         frame.setTitle("TicTacToe");
-        frame.setPreferredSize(new Dimension(380,550));
+        frame.setPreferredSize(new Dimension(400,600));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new FlowLayout());
 
@@ -114,10 +138,13 @@ public class TicTacToe implements ActionListener {
                 frame.add(board[i][j]);
             }
         }
+
+        frame.add(panel);
+        frame.add(buttonPanel);
         
-        frame.add(playerName);
-        frame.add(winner);
-        frame.add(quit);
+        // frame.add(playerName);
+        // frame.add(winner);
+        // frame.add(quitButton);
         
         ImageIcon customIcon = new ImageIcon(getClass().getResource("icons/icon.png"));
         frame.setIconImage(customIcon.getImage());
@@ -129,6 +156,31 @@ public class TicTacToe implements ActionListener {
 
         timer = new Timer(500, e -> updateBoardIcons()); // Set up a Timer to fire every 1000 milliseconds (1 second)
         timer.start();
+    }
+
+    private void restartGame()
+    {
+        try{
+            PrintWriter pr = new PrintWriter (sock.getOutputStream());
+            pr.println(Integer.toString(3));
+            pr.flush();
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
+        for(int i = 0; i < 3; i++){
+            for(int j = 0; j < 3; j++) {
+                board[i][j].setIcon(null);
+                board[i][j].setBackground(Color.WHITE);
+                assigned[i][j] = -1;
+            }
+        }
+
+        whoWon = -1;
+        winner.setText("");
+        currentPlayer = player;
+        checkTurn();
     }
 
     @Override
@@ -151,7 +203,7 @@ public class TicTacToe implements ActionListener {
         } 
     }
 
-    private void quitGame()
+    private void quitButtonGame()
     {
         frame.dispose();
         closeSocket();
@@ -303,12 +355,14 @@ public class TicTacToe implements ActionListener {
             winner.setText("X Won!");
             winner.setForeground(new Color(0xff615f));
             buttonsDisabled();
+            timer.stop();
             // closeSocket();
             return true;
         } else if (whoWon == 0) { // O WON
             winner.setText("O Wins!");
             winner.setForeground(new Color(0x3ec5f3));
             buttonsDisabled();
+            timer.stop();
             // closeSocket();
             return true;
         }
@@ -326,6 +380,7 @@ public class TicTacToe implements ActionListener {
                 winner.setText("Tie!");
                 winner.setForeground(Color.BLACK);
                 buttonsDisabled();
+                timer.stop();
                 // closeSocket();
                 return true;
         }
