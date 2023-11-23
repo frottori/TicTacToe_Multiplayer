@@ -14,8 +14,8 @@ import java.net.*;
 
 public class TicTacToe implements ActionListener {
 
-    private int  port = 1761;
-    private String serverAddress = "localhost";
+    private int port = 1762;
+    private String serverAddress = "raspotto.ddns.net";
     private Socket sock;
     private JButton[][] board;
 
@@ -32,17 +32,19 @@ public class TicTacToe implements ActionListener {
     private Timer timer;
     boolean flag;
 
+    BufferedReader in;
+
     private int currentPlayer;
 
     private void initConnection()
     {
-        try{
+        try {
             sock = new Socket(serverAddress,port);
-            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             currentPlayer = Integer.parseInt(in.readLine());
             player = Integer.parseInt(in.readLine());
         }
-        catch(IOException e){
+        catch(IOException e) {
             e.printStackTrace();
         }
     }
@@ -70,8 +72,8 @@ public class TicTacToe implements ActionListener {
         winner.setHorizontalAlignment(SwingConstants.CENTER);
     }
 
-    public TicTacToe(){
-
+    public TicTacToe()
+    {
         initConnection();
         
         playerName = new JLabel("");
@@ -97,6 +99,7 @@ public class TicTacToe implements ActionListener {
         restartButton.setPreferredSize(new Dimension(150, 50));
         restartButton.setFocusable(false);
         restartButton.addActionListener(e -> restartGame());
+        restartButton.setEnabled(false);
 
         quitButton = new JButton("Quit");
         quitButton.setBackground(Color.WHITE);
@@ -111,11 +114,12 @@ public class TicTacToe implements ActionListener {
         buttonPanel.add(restartButton);
         buttonPanel.add(quitButton);
 
-        quitButton.addActionListener(e -> quitButtonGame());
+        quitButton.addActionListener(e -> quitGame());
         
         checkTurn();
 
         assigned = new int[3][3];
+        
 
         frame = new JFrame();
         frame.setTitle("TicTacToe");
@@ -123,21 +127,7 @@ public class TicTacToe implements ActionListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new FlowLayout());
 
-        board = new JButton[3][3];
-        xIcon = new ImageIcon(getClass().getResource("icons/x.png"));
-        oIcon = new ImageIcon(getClass().getResource("icons/o.png"));
-
-        for(int i = 0; i < 3; i++){
-            for(int j = 0; j < 3; j++) {
-                assigned[i][j] = -1;
-                board[i][j] = new JButton();
-                board[i][j].setPreferredSize(new Dimension(110,100));
-                board[i][j].addActionListener(this);
-                board[i][j].setBackground(Color.WHITE);
-                board[i][j].setFocusable(false);
-                frame.add(board[i][j]);
-            }
-        }
+        initBoard();
 
         frame.add(panel);
         frame.add(buttonPanel);
@@ -158,29 +148,55 @@ public class TicTacToe implements ActionListener {
         timer.start();
     }
 
+    private void initBoard()
+    {
+        board = new JButton[3][3];
+        xIcon = new ImageIcon(getClass().getResource("icons/x.png"));
+        oIcon = new ImageIcon(getClass().getResource("icons/o.png"));
+
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                assigned[i][j] = -1;
+                board[i][j] = new JButton();
+                board[i][j].setPreferredSize(new Dimension(110,100));
+                board[i][j].addActionListener(this);
+                board[i][j].setBackground(Color.WHITE);
+                board[i][j].setFocusable(false);
+                frame.add(board[i][j]);
+            }
+        }
+    }
+
     private void restartGame()
     {
-        try{
+        try {
             PrintWriter pr = new PrintWriter (sock.getOutputStream());
             pr.println(Integer.toString(3));
             pr.flush();
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+            currentPlayer = Integer.parseInt(in.readLine());
         }
-        catch(IOException e){
+        catch(IOException e) {
             e.printStackTrace();
         }
 
-        for(int i = 0; i < 3; i++){
+        for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
                 board[i][j].setIcon(null);
                 board[i][j].setBackground(Color.WHITE);
+                board[i][j].setEnabled(true);
                 assigned[i][j] = -1;
             }
         }
 
+        System.out.println("Current player: " + currentPlayer);
         whoWon = -1;
         winner.setText("");
-        currentPlayer = player;
         checkTurn();
+        showPlayer();
+        
+        timer.start();
     }
 
     @Override
@@ -203,7 +219,7 @@ public class TicTacToe implements ActionListener {
         } 
     }
 
-    private void quitButtonGame()
+    private void quitGame()
     {
         frame.dispose();
         closeSocket();
@@ -223,20 +239,20 @@ public class TicTacToe implements ActionListener {
         }
     }
     
-    public static boolean equals3(int a, int b, int c){
+    public static boolean equals3(int a, int b, int c) {
         if(a == b && b == c & a != -1)
             return true;
         else 
             return false;
     }
 
-    private void setWinner(JButton b1, JButton b2, JButton b3, int color){
-        if(color == 0){ // O WON
+    private void setWinner(JButton b1, JButton b2, JButton b3, int color) {
+        if(color == 0) { // O WON
             b1.setBackground(new Color(0x3ec5f3));
             b2.setBackground(new Color(0x3ec5f3));
             b3.setBackground(new Color(0x3ec5f3));
         }
-        else{ // X WON
+        else { // X WON
             b1.setBackground(new Color(0xff615f));
             b2.setBackground(new Color(0xff615f));
             b3.setBackground(new Color(0xff615f));
@@ -253,7 +269,6 @@ public class TicTacToe implements ActionListener {
             pr.println(Integer.toString(player));
 
             pr.flush();
-
         }
         catch(IOException e){
             e.printStackTrace();
@@ -310,15 +325,14 @@ public class TicTacToe implements ActionListener {
                 for (int l = 0; l < 3; l++) {
                     board[k][l].setEnabled(turn == player);
                 }
-            }    
-
+            }
         }
         catch(IOException | ClassNotFoundException e ){
             e.printStackTrace();
         }
     }
 
-    private boolean checkWinner(){
+    private boolean checkWinner() {
 
         flag = true;
 
@@ -352,40 +366,48 @@ public class TicTacToe implements ActionListener {
         }
 
         if (whoWon == 1) { // X WON
+
             winner.setText("X Won!");
             winner.setForeground(new Color(0xff615f));
             buttonsDisabled();
+            
+            restartButton.setEnabled(flag);
             timer.stop();
             // closeSocket();
             return true;
         } else if (whoWon == 0) { // O WON
+
             winner.setText("O Wins!");
             winner.setForeground(new Color(0x3ec5f3));
             buttonsDisabled();
+            
+            restartButton.setEnabled(flag);
             timer.stop();
             // closeSocket();
             return true;
         }
 
         for (int k = 0; k < 3; k++) {
-                for (int l = 0; l < 3; l++) {
-                    Icon icon = board[l][k].getIcon();
-                    if (icon == null) {
-                        flag = false;
-                    }
+            for (int l = 0; l < 3; l++) {
+                Icon icon = board[l][k].getIcon();
+                if (icon == null) {
+                    flag = false;
                 }
+            }
         }
 
         if (flag == true) { //TIE
-                winner.setText("Tie!");
-                winner.setForeground(Color.BLACK);
-                buttonsDisabled();
-                timer.stop();
-                // closeSocket();
-                return true;
-        }
-        return false;
+            winner.setText("Tie!");
+            winner.setForeground(Color.BLACK);
+            buttonsDisabled();
 
+            restartButton.setEnabled(flag);
+            timer.stop();
+            // closeSocket();
+            return true;
+        }
+
+        return false;
     }
 
     private void buttonsDisabled(){

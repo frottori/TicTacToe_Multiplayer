@@ -8,6 +8,7 @@ public class TicServer {
     private static int currentPlayer = 1;
     private static Semaphore semaphore = new Semaphore(1); // Semaphore for currentPlayer
     private static int[][] board;
+    
 
     public TicServer()
     {
@@ -28,7 +29,7 @@ public class TicServer {
     public static void initSocket()
     {
         ServerSocket serverSocket = null;
-        int port = 1761;
+        int port = 1762;
 
         try {
             serverSocket = new ServerSocket(port);
@@ -54,6 +55,11 @@ public class TicServer {
         }
     }
 
+    public static void sendRestartMessage(PrintWriter out) throws IOException {
+        out.println(4);
+        out.flush();
+    }
+
     public static void main(String[] args) {
         new TicServer();
     }
@@ -73,19 +79,34 @@ public class TicServer {
 }
 
 class ClientHandlerThread extends Thread {
+
+    private static final int MAX_CLIENTS = 2;
     private Socket clientSocket;
     private int clientNumber;
     private int[][] board;
+    private static int restartCount = 0;
 
     public ClientHandlerThread(Socket socket, int clientNumber, int[][] board) {
         this.clientSocket = socket;
         this.clientNumber = clientNumber;
         this.board = board;
+        restartCount = 0;
+    }
+
+    private void resetBoard()
+    {
+        // board = new int[3][3];
+        
+        for(int i = 0; i < 3; i++)
+            for(int j = 0; j < 3; j++)
+                board[i][j] = -1;
     }
 
     @Override
     public void run() {
+
         System.out.println("Client connected: " + clientSocket.getInetAddress() + " " + clientNumber);
+        
         try {
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
             out.println(TicServer.getCurrentPlayer());
@@ -140,8 +161,28 @@ class ClientHandlerThread extends Thread {
 
                     out.println(currentPlayer);
                     out.flush();
-                } else if (code == 3) { // reset
-                    TicServer.initBoard();
+                } else if (code == 3) {
+
+                    restartCount++;
+
+                    System.out.println("Restart Count: " + restartCount);
+
+                    if(restartCount == MAX_CLIENTS) {
+                        System.out.println("Restarting game...");
+                        resetBoard();
+                        restartCount = 0;
+                        // for (int i = 0; i < 3; i++) {
+                        //     for (int j = 0; j < 3; j++) {
+                        //         System.out.print(board[i][j] + " ");
+                        //     }
+                        //     System.out.println();
+                        // }
+
+                        // TicServer.sendRestartMessage(out);
+                    }
+
+                    TicServer.setCurrentPlayer(1);
+                    out.println(TicServer.getCurrentPlayer());
                 }
             }
         } catch (IOException | InterruptedException e) {
